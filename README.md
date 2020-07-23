@@ -1,6 +1,7 @@
 # Mask Map (口罩地圖)
 
 > 透過藥局口罩地圖，輕鬆查詢口罩剩餘數量等即時資訊。
+https://kitfbgh.github.io/MaskMap/
 
 ## 需求
 
