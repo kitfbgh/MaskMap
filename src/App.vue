@@ -4,6 +4,17 @@
       <div class="col-sm-3">
         <div class="toolbox">
           <div class="sticky-top p-4">
+            <div class="h-d-flex">
+              <h2 class="h4 h-flex-1">{{new Date().getDay()|week}}</h2>
+              <div>
+                <p class="h6 text-right h-mb-1">{{new Date()|date}}</p>
+                <p class="small-text-1">身分證末碼為
+                  <strong
+                  class="h5 h-text-notice h-mx-1 text-mask">{{new Date().getDay()|idCard}}</strong>
+                  可購買
+                </p>
+              </div>
+            </div>
             <div class="form-group d-flex">
               <div class="flex-fill">
                 <select
@@ -19,10 +30,6 @@
                     :key="item.CityName"
                   >{{ item.CityName }}</option>
                 </select>
-              </div>
-            </div>
-            <div class="form-group d-flex">
-              <div class="flex-fill">
                 <select
                   id="areaName"
                   class="form-control"
@@ -68,6 +75,10 @@
                 <p class="mb-2 text-secondary pharmacy-info">
                   <img src="./assets/images/phone.svg" class="mr-2">
                   {{ item.properties.phone }}
+                </p>
+                <p class="mb-2 text-secondary pharmacy-info">
+                  <span class="text-mask">Note</span>:
+                  {{ item.properties.note }}
                 </p>
                 <div
                   class="btn-group w-100"
@@ -118,6 +129,10 @@
                 <p class="mb-2 text-secondary pharmacy-info">
                   <img src="./assets/images/phone.svg" class="mr-2">
                   {{ item.properties.phone }}
+                </p>
+                <p class="mb-2 text-secondary pharmacy-info">
+                  <span class="text-mask">Note</span>:
+                  {{ item.properties.note }}
                 </p>
                 <div
                   class="btn-group w-100"
@@ -217,6 +232,7 @@ export default {
         <h2>${properties.name}</h2>
         <p class="m-0 mb-1"><a class="text-secondary" href='https://www.google.com.tw/maps/place/${properties.address}'>${properties.address}</a></p>
         <p class="m-0 mb-1 text-secondary">${properties.phone}</p>
+        <p class="m-0 mb-1 text-secondary"><span class="text-mask">Note</span>: ${properties.note}</p>
         ${btnGroup}
         <p class="m-0 mb-1 text-secondary">最後更新時間：${properties.updated}</p>`);
       });
@@ -255,9 +271,11 @@ export default {
       const btnChild = (properties.mask_child === 0) ? '<button class="btn btn-lightGrey w-100 btn-child">兒童：已售完</button>' : `<button class="btn btn-mask w-100 btn-child">兒童：${properties.mask_child} 個</button>`;
       const btnGroup = (properties.mask_adult !== 0 && properties.mask_child !== 0) ? `<div class="btn-group w-100 mb-1 border-middle">${btnAdult}${btnChild}</div>` : `<div class="btn-group w-100 mb-1">${btnAdult}${btnChild}</div>`;
       // 直接點選左邊列表的藥局
-      L.marker([x, y], { icon: mask }).addTo(osmMap).bindPopup(`<h2>${properties.name}</h2>
+      L.marker([x, y], { icon: mask }).addTo(osmMap).bindPopup(`
+        <h2>${properties.name}</h2>
         <p class="m-0 mb-1"><a class="text-secondary" href='https://www.google.com.tw/maps/place/${properties.address}'>${properties.address}</a></p>
         <p class="m-0 mb-1 text-secondary">${properties.phone}</p>
+        <p class="m-0 mb-1 text-secondary"><span class="text-mask">Note</span>: ${properties.note}</p>
         ${btnGroup}
         <p class="m-0 mb-1 text-secondary">最後更新時間：${properties.updated}</p>`).openPopup();
       osmMap.panTo([x, y]);
@@ -367,5 +385,17 @@ export default {
     z-index: 9;
     margin: -9px auto 0;
   }
+}
+
+.small-text-1 {
+  font-size: 10px;
+}
+
+.h-flex-1 {
+  flex: 1;
+}
+
+.h-d-flex {
+  display: flex;
 }
 </style>
