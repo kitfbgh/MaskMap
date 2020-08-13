@@ -1,6 +1,14 @@
 <template>
   <div id="app">
     <div class="row no-gutters">
+      <div class="c-loading" style="display: none">
+        <div class="c-loading__ring">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
       <div class="col-sm-3">
         <div class="toolbox">
           <div class="sticky-top p-4">
@@ -30,6 +38,7 @@
                     :key="item.CityName"
                   >{{ item.CityName }}</option>
                 </select>
+                <br>
                 <select
                   id="areaName"
                   class="form-control"
@@ -171,9 +180,12 @@
 
 <script>
 import L from 'leaflet';
+// import S from 'leaflet.markercluster';
 import CityCountyData from './assets/CityCountyData.json';
 
 let osmMap = {};
+// marker群組管理
+// const markers = new S.MarkerClusterGroup();
 const blueIcon = new L.Icon({
   iconUrl: 'https://i.imgur.com/Iehvre0.png',
   shadowUrl:
@@ -193,6 +205,16 @@ const greyIcon = new L.Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+const redIcon = new L.Icon({
+  iconUrl:
+    'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl:
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [32, 43],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 export default {
   name: 'App',
@@ -202,7 +224,7 @@ export default {
       CityCountyData,
       selected: {
         city: '彰化縣',
-        area: '社頭鄉',
+        area: '',
       },
       isChanged: false,
       pharmacyNum: 0,
@@ -222,10 +244,15 @@ export default {
       // 把圖標加到畫面上
       pharmacies.forEach((pharmacy) => {
         const { properties, geometry } = pharmacy;
-        const mask = (properties.mask_adult === 0) ? greyIcon : blueIcon;
+        const mask = (() => {
+          if (properties.mask_adult === 0 && properties.mask_child === 0) return greyIcon;
+          if (properties.mask_adult === 0 || properties.mask_child === 0) return redIcon;
+          return blueIcon;
+        })();
         const btnAdult = (properties.mask_adult === 0) ? '<button class="btn btn-lightGrey w-100 btn-adult">成人：已售完</button>' : `<button class="btn btn-mask w-100 btn-adult">成人：${properties.mask_adult} 個</button>`;
         const btnChild = (properties.mask_child === 0) ? '<button class="btn btn-lightGrey w-100 btn-child">兒童：已售完</button>' : `<button class="btn btn-mask w-100 btn-child">兒童：${properties.mask_child} 個</button>`;
         const btnGroup = (properties.mask_adult !== 0 && properties.mask_child !== 0) ? `<div class="btn-group w-100 mb-1 border-middle">${btnAdult}${btnChild}</div>` : `<div class="btn-group w-100 mb-1">${btnAdult}${btnChild}</div>`;
+        // markers.addLayer(
         L.marker([geometry.coordinates[1], geometry.coordinates[0]], {
           icon: mask,
         }).addTo(osmMap).bindPopup(`
@@ -235,7 +262,9 @@ export default {
         <p class="m-0 mb-1 text-secondary"><span class="text-mask">Note</span>: ${properties.note}</p>
         ${btnGroup}
         <p class="m-0 mb-1 text-secondary">最後更新時間：${properties.updated}</p>`);
+        // );
       });
+      // osmMap.addLayer(markers);
       // 加上 changeArea 是因為換地區後要直接打開該區域的第一間藥局
       vm.changeArea(pharmacies[0]);
     },
@@ -266,11 +295,16 @@ export default {
       const { properties, geometry } = pharmacy;
       const x = geometry.coordinates[1];
       const y = geometry.coordinates[0];
-      const mask = (properties.mask_adult === 0) ? greyIcon : blueIcon;
+      const mask = (() => {
+        if (properties.mask_adult === 0 && properties.mask_child === 0) return greyIcon;
+        if (properties.mask_adult === 0 || properties.mask_child === 0) return redIcon;
+        return blueIcon;
+      })();
       const btnAdult = (properties.mask_adult === 0) ? '<button class="btn btn-lightGrey w-100 btn-adult">成人：已售完</button>' : `<button class="btn btn-mask w-100 btn-adult">成人：${properties.mask_adult} 個</button>`;
       const btnChild = (properties.mask_child === 0) ? '<button class="btn btn-lightGrey w-100 btn-child">兒童：已售完</button>' : `<button class="btn btn-mask w-100 btn-child">兒童：${properties.mask_child} 個</button>`;
       const btnGroup = (properties.mask_adult !== 0 && properties.mask_child !== 0) ? `<div class="btn-group w-100 mb-1 border-middle">${btnAdult}${btnChild}</div>` : `<div class="btn-group w-100 mb-1">${btnAdult}${btnChild}</div>`;
       // 直接點選左邊列表的藥局
+      // markers.addLayer(
       L.marker([x, y], { icon: mask }).addTo(osmMap).bindPopup(`
         <h2>${properties.name}</h2>
         <p class="m-0 mb-1"><a class="text-secondary" href='https://www.google.com.tw/maps/place/${properties.address}'>${properties.address}</a></p>
@@ -278,6 +312,8 @@ export default {
         <p class="m-0 mb-1 text-secondary"><span class="text-mask">Note</span>: ${properties.note}</p>
         ${btnGroup}
         <p class="m-0 mb-1 text-secondary">最後更新時間：${properties.updated}</p>`).openPopup();
+      // );
+      // osmMap.addLayer(markers);
       osmMap.panTo([x, y]);
     },
   },
@@ -298,6 +334,13 @@ export default {
       foo: 'bar',
       attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
     }).addTo(osmMap);
+    // 使用 control.locate 套件
+    L.control
+      .locate({
+        showPopup: false,
+      })
+      .addTo(osmMap)
+      .start();
   },
 };
 </script>
